@@ -1,8 +1,12 @@
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb+srv://user1:user1secure@cluster0.fkll7fi.mongodb.net/thinkbooks?appName=Cluster0');
+    await mongoose.connect(process.env.MONGO_URI);
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);

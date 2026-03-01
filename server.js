@@ -1,6 +1,10 @@
 import express from "express";
 import connectDB from "./database.js";
 import Recommendation from "./models/recommendation.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 
 const app = express();
 
