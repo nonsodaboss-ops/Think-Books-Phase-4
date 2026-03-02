@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Search Book Recommendations</title>
+  <style>
+      .navbar {
+        background: #222;
+        padding: 10px 0;
+        margin-bottom: 30px;
+        text-align: center;
+      }
+      .navbar a {
+        color: #fff;
+        text-decoration: none;
+        margin: 0 15px;
+        font-weight: bold;
+        font-size: 16px;
+      }
+      .navbar a:hover {
+        text-decoration: underline;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+      }
+      form {
+        max-width: 400px;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+      button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      #results { max-width: 600px; margin: 30px auto; }
+      .rec-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #f9f9f9;
+      }
+      .rec-card h3 { margin: 0 0 8px 0; }
+      .rec-card .meta { color: #555; font-size: 14px; margin-bottom: 8px; }
+      #message {
+        max-width: 400px;
+        margin: auto;
+        margin-top: 20px;
+      }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+      <a href="/">Home</a>
+      <a href="/register.html">Register</a>
+      <a href="/login.html">Login</a>
+      <a href="/recommend.html">Recommend</a>
+      <a href="/search.html">Search</a>
+    </div>
+  <h2>Search for Books</h2>
+  <form id="searchForm">
+      <input type="text" id="query" name="query" placeholder="Search by title, author, or review..." required />
+      <button type="submit">Search</button>
+    </form>
+    <div id="message"></div>
+    <div id="results"></div>
+  </form>
+  <script>
+      document.getElementById('searchForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const query = document.getElementById('query').value.trim();
+        const resultsDiv = document.getElementById('results');
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = '';
+        resultsDiv.innerHTML = 'Searching...';
+        try {
+          const response = await fetch(`/search?query=${encodeURIComponent(query)}`);
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            resultsDiv.innerHTML = data.map(rec => `
+              <div class="rec-card">
+                <h3>${rec.title}</h3>
+                <div class="meta">by ${rec.author} | Rating: ${rec.rating} | Added: ${new Date(rec.createdAt).toLocaleDateString()}</div>
+                <div>${rec.review || ''}</div>
+              </div>
+            `).join('');
+          } else {
+            resultsDiv.innerHTML = '';
+            messageDiv.textContent = 'No recommendations found.';
+            messageDiv.style.color = 'red';
+          }
+        } catch (err) {
+          resultsDiv.innerHTML = '';
+          messageDiv.textContent = 'Error searching recommendations.';
+          messageDiv.style.color = 'red';
+        }
+      });
+  </script>
+</body>
+</html>

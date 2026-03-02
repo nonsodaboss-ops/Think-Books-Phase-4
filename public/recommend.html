@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Add Book Recommendation</title>
+    <style>
+      .navbar {
+        background: #222;
+        padding: 10px 0;
+        margin-bottom: 30px;
+        text-align: center;
+      }
+      .navbar a {
+        color: #fff;
+        text-decoration: none;
+        margin: 0 15px;
+        font-weight: bold;
+        font-size: 16px;
+      }
+      .navbar a:hover {
+        text-decoration: underline;
+      }
+    </style>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+      }
+      form {
+        max-width: 400px;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+      }
+      label {
+        display: block;
+        margin-top: 15px;
+        font-weight: bold;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+      button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar">
+      <a href="/">Home</a>
+      <a href="/register.html">Register</a>
+      <a href="/login.html">Login</a>
+      <a href="/recommend.html">Recommend</a>
+      <a href="/search.html">Search</a>
+    </div>
+    <h2>Add a Book Recommendation</h2>
+    <form id="recommendForm">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" required />
+
+      <label for="author">Author</label>
+      <input type="text" id="author" name="author" required />
+
+      <label for="description">Description</label>
+      <textarea id="description" name="review" rows="4" required></textarea>
+
+      <label for="rating">Rating</label>
+      <select id="rating" name="rating" required>
+        <option value="">Select rating</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+
+      <button type="submit">Submit Recommendation</button>
+    </form>
+    <div
+      id="message"
+      style="max-width: 400px; margin: auto; margin-top: 20px"
+    ></div>
+    <script>
+      document
+        .getElementById("recommendForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const title = document.getElementById("title").value.trim();
+          const author = document.getElementById("author").value.trim();
+          const review = document.getElementById("description").value.trim();
+          const rating = document.getElementById("rating").value;
+          const messageDiv = document.getElementById("message");
+
+          // Client-side validation
+          if (!title || !author || !review || !rating) {
+            messageDiv.textContent = "All fields are required.";
+            messageDiv.style.color = "red";
+            return;
+          }
+          if (title.length < 2) {
+            messageDiv.textContent = "Title must be at least 2 characters.";
+            messageDiv.style.color = "red";
+            return;
+          }
+          if (author.length < 2) {
+            messageDiv.textContent = "Author must be at least 2 characters.";
+            messageDiv.style.color = "red";
+            return;
+          }
+          if (review.length < 5) {
+            messageDiv.textContent =
+              "Description must be at least 5 characters.";
+            messageDiv.style.color = "red";
+            return;
+          }
+          if (!(rating >= 1 && rating <= 5)) {
+            messageDiv.textContent = "Please select a valid rating.";
+            messageDiv.style.color = "red";
+            return;
+          }
+
+          // Submit form data via fetch
+          try {
+            const response = await fetch("/recommendations", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title,
+                author,
+                review,
+                rating: Number(rating),
+              }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+              messageDiv.textContent = "Recommendation submitted successfully!";
+              messageDiv.style.color = "green";
+              document.getElementById("recommendForm").reset();
+            } else {
+              messageDiv.textContent = data.error || "Submission failed.";
+              messageDiv.style.color = "red";
+            }
+          } catch (err) {
+            messageDiv.textContent = "Network error. Please try again.";
+            messageDiv.style.color = "red";
+          }
+        });
+    </script>
+  </body>
+</html>
