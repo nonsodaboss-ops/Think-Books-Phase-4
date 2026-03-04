@@ -5,10 +5,11 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const authRoutes = require("./src/routes/auth");
 const booksRouter = require("./src/routes/books");
-
 const Recommendation = require("./models/recommendation");
+const User = require("./models/User");
 
 dotenv.config();
+
 // Connect to MongoDB
 const connectDB = async () => {
   try {
@@ -18,57 +19,50 @@ const connectDB = async () => {
     console.error("MongoDB connection error:", error);
   }
 };
+connectDB();
 
 const app = express();
 
-// Configure express-session middleware
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "defaultsecret",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Set to true if using HTTPS
+    cookie: { secure: false },
   }),
 );
 
-// Connect to MongoDB
-connectDB();
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
-// Mount books router on /books
-
-// Mount auth router on /auth
+// Routes
 app.use("/auth", authRoutes);
-app.use("/books", booksRouter);
+app.use("/api/books", booksRouter);
 
+// Homepage route
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Middleware to check if user is logged in (simple session-based)
-const User = require("./models/User");
+// Simple session-based user check
 app.use((req, res, next) => {
-  // For demonstration, assume userId is stored in session (req.session.userId)
-  // In production, use proper authentication
   if (req.session && req.session.userId) {
     req.userId = req.session.userId;
   }
   next();
 });
 
-// Route to save a book recommendation and associate with user
+// Recommendation route
 app.post("/recommendations", async (req, res) => {
   try {
-    if (!req.userId) {
+    if (!req.userId)
       return res.status(401).send({ error: "User not authenticated" });
-    }
     const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).send({ error: "User not found" });
-    }
+    if (!user) return res.status(404).send({ error: "User not found" });
+
     const rec = new Recommendation({ ...req.body, user: user._id });
     await rec.save();
     res.status(201).send(rec);
@@ -80,9 +74,10 @@ app.post("/recommendations", async (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  // Automatically open browser to recommend.html on server start
+
+  // Automatically open homepage when server starts
   if (process.env.NODE_ENV !== "test") {
     const open = require("open");
-    (open.default || open)(`http://localhost:${PORT}/recommend.html`);
+    (open.default || open)(`http://localhost:${PORT}/`);
   }
 });

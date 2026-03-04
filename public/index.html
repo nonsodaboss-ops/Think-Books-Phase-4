@@ -24,6 +24,13 @@
       .navbar a:hover {
         text-decoration: underline;
       }
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      li {
+        margin: 10px 0;
+      }
     </style>
   </head>
   <body>
@@ -34,10 +41,47 @@
       <a href="/recommend.html">Recommend</a>
       <a href="/search.html">Search</a>
     </div>
+
     <h2>Welcome to Think Books!</h2>
     <p>
       This is your book recommendation web app. Use the navigation above to
       register, log in, and recommend books.
     </p>
+
+    <h3>Available Books</h3>
+    <ul id="bookList"></ul>
+
+  <script>
+  async function loadBooks() {
+    try {
+      const res = await fetch("/api/books");
+      const books = await res.json();
+      console.log("Books fetched:", books); // ✅ Debug log
+
+      const list = document.getElementById("bookList");
+      list.innerHTML = "";
+
+      if (!books || books.length === 0) {
+        list.innerHTML = "<li>No books found</li>";
+        return;
+      }
+
+      books.forEach(book => {
+        console.log("Rendering book:", book); // ✅ Debug log
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = `book.html?id=${book.id}`;
+        link.textContent = `${book.title} by ${book.author}`;
+        li.appendChild(link);
+        list.appendChild(li);
+      });
+    } catch (err) {
+      console.error("Failed to load books:", err);
+    }
+  }
+
+  loadBooks();
+</script>
+
   </body>
 </html>
